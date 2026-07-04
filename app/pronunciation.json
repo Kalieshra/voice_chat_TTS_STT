@@ -1,0 +1,5 @@
+{
+  "_comment": "Per-language whole-word pronunciation fixes applied before synthesis. Key = word/phrase as written; value = respelling that XTTS pronounces correctly. Matching is whole-word and (for en) case-insensitive. Edits apply on the next request — no restart needed. Examples below are commented-out style; add your own real entries.",
+  "ar": {},
+  "en": {}
+}

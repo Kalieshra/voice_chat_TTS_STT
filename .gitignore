@@ -1,0 +1,28 @@
+# --- Secrets ---
+.env
+*.key
+
+# --- Python ---
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# --- Models (too large for GitHub; download separately) ---
+models/
+
+# --- Generated audio / binaries / logs ---
+*.wav
+*.pcm
+*.webm
+*.crl
+*.bin
+*.log
+scripts/cloudflared
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/

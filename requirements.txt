@@ -1,0 +1,24 @@
+# Verified working stack for NileTTS-XTTS on RTX 4090 (CUDA 12.4, Python 3.12).
+#
+# Install PyTorch from the CUDA index FIRST:
+#   pip install torch==2.6.0+cu124 torchaudio==2.6.0+cu124 --index-url https://download.pytorch.org/whl/cu124
+# then:
+#   pip install -r requirements.txt
+
+coqui-tts==0.27.5
+# transformers 5.x removed `isin_mps_friendly` that XTTS depends on — keep it on 4.57.x.
+transformers>=4.57,<5
+huggingface_hub<1.0
+fastapi==0.139.0
+uvicorn[standard]==0.49.0
+python-multipart==0.0.32
+soundfile==0.14.0
+numpy==2.4.6
+
+# --- STT (faster-whisper) + agent ---
+faster-whisper
+# ffmpeg without root: imageio-ffmpeg ships a static binary
+imageio-ffmpeg
+openai
+anthropic
+python-dotenv
