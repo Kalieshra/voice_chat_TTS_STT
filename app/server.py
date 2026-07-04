@@ -41,6 +41,9 @@ from . import agent as agent_mod
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR = os.path.join(BASE_DIR, "models", "nile-xtts")
+# Hugging Face repo the model is fetched from on first run (the weights are too
+# large for git/GitHub, so they are downloaded here instead of cloned).
+MODEL_REPO = os.environ.get("NILE_MODEL_REPO", "KickItLikeShika/NileTTS-XTTS")
 VOICES_DIR = os.path.join(BASE_DIR, "voices")
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 UPLOAD_DIR = os.path.join(VOICES_DIR, "uploads")
@@ -128,14 +131,49 @@ def _model_files_ready() -> tuple[bool, str]:
     return True, ""
 
 
+# Shared state between the downloader thread and the loader loop below.
+_DOWNLOAD = {"error": None}
+
+
+def _download_model() -> None:
+    """Fetch the model from Hugging Face into MODEL_DIR (first run only).
+
+    snapshot_download is idempotent: files already present are hash-verified and
+    skipped, so an existing local model returns immediately without re-fetching.
+    In-progress downloads write *.incomplete files under MODEL_DIR/.cache, which
+    the existing progress machinery (_incomplete_gb) already reports on.
+    """
+    ready, _ = _model_files_ready()
+    if ready:
+        return
+    try:
+        from huggingface_hub import snapshot_download
+
+        print(f"[NileTTS] Model missing — downloading {MODEL_REPO} -> {MODEL_DIR}")
+        snapshot_download(repo_id=MODEL_REPO, local_dir=MODEL_DIR)
+        print("[NileTTS] Model download complete.")
+    except Exception as e:  # noqa: BLE001 — surface any failure to the UI
+        _DOWNLOAD["error"] = str(e)
+        print("[NileTTS] Model download failed:", e)
+
+
 def _background_load() -> None:
     if DEFAULT_VOICE is None:
         _LOAD_STATE.update(status="error", detail="no reference voice in voices/")
         print("[WARN] No reference voice found in", VOICES_DIR)
         return
+    # Kick off the download (no-op if the model is already present). It runs in
+    # its own thread so the loop below can report live progress via /healthz.
+    threading.Thread(target=_download_model, daemon=True).start()
     # Wait for the download to finish, then load — retrying on transient errors
     # (e.g. the file exists but is still being flushed).
     while True:
+        if _DOWNLOAD["error"]:
+            _LOAD_STATE.update(
+                status="error",
+                detail=f"model download failed: {_DOWNLOAD['error']}"[:120],
+            )
+            return
         ready, detail = _model_files_ready()
         if not ready:
             _LOAD_STATE.update(status="downloading", detail=detail)

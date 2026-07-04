@@ -14,13 +14,16 @@ __pycache__/
 models/
 
 # --- Generated audio / binaries / logs ---
-*.wav
+# Test/output audio lives under scripts/; the small reference clips under
+# voices/ (default.wav, man.wav) are REQUIRED assets and stay tracked.
+scripts/*.wav
 *.pcm
 *.webm
 *.crl
 *.bin
 *.log
 scripts/cloudflared
+voices/uploads/
 
 # --- OS / editor ---
 .DS_Store

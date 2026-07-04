@@ -36,13 +36,25 @@ pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
 # 2) App deps
 pip install -r requirements.txt
 
-# 3) Model + reference voice are downloaded into models/ and voices/ by setup.
+# 3) API keys for the chat/agent features (optional for pure TTS)
+cp .env.example .env      # then edit .env and fill in your key(s)
 ```
+
+### Model weights (~5.6 GB)
+The XTTS checkpoint is **not** in this repo (too large for GitHub). It is fetched
+from Hugging Face automatically **on first startup** into `models/nile-xtts/`, and
+the web UI shows a live download progress bar. To pre-download it instead:
+
+```bash
+huggingface-cli download KickItLikeShika/NileTTS-XTTS --local-dir models/nile-xtts
+```
+
+Override the source repo with `NILE_MODEL_REPO=<org/repo>` if you host your own.
 
 ## Run
 ```bash
 ./run.sh
-# then open http://localhost:8000
+# then open http://localhost:8000  (model downloads on first run; UI shows progress)
 ```
 
 ## Notes
@@ -51,4 +63,3 @@ pip install -r requirements.txt
   language `ar`.
 - First request after startup is warmed automatically during model load.
 - Set `NILE_DEEPSPEED=1` before `run.sh` to enable DeepSpeed GPT acceleration (optional).
-# Voice_Chat_Bot_Version_2
